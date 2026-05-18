@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+model User {
+  id            String        @id @default(uuid()) @db.Uuid
+  displayName   String        @map("display_name") @db.VarChar(120)
+  accountStatus AccountStatus @default(ACTIVE) @map("account_status")
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  profile       UserProfile?
+  photos        UserPhoto[]
+  interests     UserInterest[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  userId    String   @id @map("user_id") @db.Uuid
+  age       Int?
+  bio       String?
+  location  String?  @db.VarChar(150)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model UserPhoto {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  url       String   @db.VarChar(500)
+  sortOrder Int      @default(0) @map("sort_order")
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sortOrder])
+  @@map("user_photos")
+}
+
+model UserInterest {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  interest  String   @db.VarChar(80)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, interest])
+  @@map("user_interests")
+}

@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum InteractionType {
+  LIKE
+  DISLIKE
+  SUPERLIKE
+}
+
+model InteractionUserCapability {
+  userId            String   @id @map("user_id") @db.Uuid
+  planCode          String   @map("plan_code") @db.VarChar(20)
+  superlikesPerDay  Int      @map("superlikes_per_day")
+  isActive          Boolean  @default(true) @map("is_active")
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("interaction_user_capabilities")
+}
+
+model InteractionDailyCounter {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  counterDate    DateTime @map("counter_date") @db.Date
+  superlikesUsed Int      @default(0) @map("superlikes_used")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userId, counterDate])
+  @@map("interaction_daily_counters")
+}
+
+model UserInteraction {
+  id           String          @id @default(uuid()) @db.Uuid
+  actorUserId  String          @map("actor_user_id") @db.Uuid
+  targetUserId String          @map("target_user_id") @db.Uuid
+  type         InteractionType
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([actorUserId, targetUserId])
+  @@index([actorUserId, type, createdAt])
+  @@index([targetUserId, type, createdAt])
+  @@map("user_interactions")
+}

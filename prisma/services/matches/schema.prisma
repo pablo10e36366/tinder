@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MatchStatus {
+  ACTIVE
+  UNMATCHED
+  BLOCKED
+}
+
+model MatchUserSnapshot {
+  userId          String   @id @map("user_id") @db.Uuid
+  displayName     String   @map("display_name") @db.VarChar(120)
+  primaryPhotoUrl String?  @map("primary_photo_url") @db.VarChar(500)
+  location        String?  @db.VarChar(150)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("match_user_snapshots")
+}
+
+model Match {
+  id                    String      @id @default(uuid()) @db.Uuid
+  userAId               String      @map("user_a_id") @db.Uuid
+  userBId               String      @map("user_b_id") @db.Uuid
+  status                MatchStatus @default(ACTIVE)
+  createdByInteractionId String?    @map("created_by_interaction_id") @db.Uuid
+  createdAt             DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  closedAt              DateTime?   @map("closed_at") @db.Timestamptz(6)
+
+  @@unique([userAId, userBId])
+  @@index([userAId, status])
+  @@index([userBId, status])
+  @@map("matches")
+}
