@@ -14,10 +14,10 @@ enum ConversationStatus {
 }
 
 model Conversation {
-  id            String             @id @default(uuid()) @db.Uuid
-  sourceMatchId String             @unique @map("source_match_id") @db.Uuid
-  userAId       String             @map("user_a_id") @db.Uuid
-  userBId       String             @map("user_b_id") @db.Uuid
+  id            Int                @id @default(autoincrement())
+  sourceMatchId Int                @unique @map("source_match_id")
+  userAId       Int                @map("user_a_id")
+  userBId       Int                @map("user_b_id")
   status        ConversationStatus @default(ACTIVE)
   openedAt      DateTime           @default(now()) @map("opened_at") @db.Timestamptz(6)
   closedAt      DateTime?          @map("closed_at") @db.Timestamptz(6)
@@ -28,9 +28,9 @@ model Conversation {
 }
 
 model Message {
-  id             String       @id @default(uuid()) @db.Uuid
-  conversationId String       @map("conversation_id") @db.Uuid
-  senderUserId   String       @map("sender_user_id") @db.Uuid
+  id             Int          @id @default(autoincrement())
+  conversationId Int          @map("conversation_id")
+  senderUserId   Int          @map("sender_user_id")
   content        String
   createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)

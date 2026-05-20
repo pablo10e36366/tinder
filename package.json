@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "build:microservices": "tsc -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -43,7 +44,13 @@
     "prisma:deploy:subscriptions": "prisma migrate deploy --config prisma/services/subscriptions/prisma.config.ts",
     "prisma:deploy:interactions": "prisma migrate deploy --config prisma/services/interactions/prisma.config.ts",
     "prisma:deploy:matches": "prisma migrate deploy --config prisma/services/matches/prisma.config.ts",
-    "prisma:deploy:messages": "prisma migrate deploy --config prisma/services/messages/prisma.config.ts"
+    "prisma:deploy:messages": "prisma migrate deploy --config prisma/services/messages/prisma.config.ts",
+    "start:auth-service": "npm run build:microservices && node dist/apps/auth-service/src/main.js",
+    "start:users-service": "npm run build:microservices && node dist/apps/users-service/src/main.js",
+    "start:subscriptions-service": "npm run build:microservices && node dist/apps/subscriptions-service/src/main.js",
+    "start:interactions-service": "npm run build:microservices && node dist/apps/interactions-service/src/main.js",
+    "start:matches-service": "npm run build:microservices && node dist/apps/matches-service/src/main.js",
+    "start:messages-service": "npm run build:microservices && node dist/apps/messages-service/src/main.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

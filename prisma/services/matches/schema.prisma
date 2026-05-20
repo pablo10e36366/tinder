@@ -14,7 +14,7 @@ enum MatchStatus {
 }
 
 model MatchUserSnapshot {
-  userId          String   @id @map("user_id") @db.Uuid
+  userId          Int      @id @map("user_id")
   displayName     String   @map("display_name") @db.VarChar(120)
   primaryPhotoUrl String?  @map("primary_photo_url") @db.VarChar(500)
   location        String?  @db.VarChar(150)
@@ -24,11 +24,11 @@ model MatchUserSnapshot {
 }
 
 model Match {
-  id                    String      @id @default(uuid()) @db.Uuid
-  userAId               String      @map("user_a_id") @db.Uuid
-  userBId               String      @map("user_b_id") @db.Uuid
+  id                    Int         @id @default(autoincrement())
+  userAId               Int         @map("user_a_id")
+  userBId               Int         @map("user_b_id")
   status                MatchStatus @default(ACTIVE)
-  createdByInteractionId String?    @map("created_by_interaction_id") @db.Uuid
+  createdByInteractionId Int?       @map("created_by_interaction_id")
   createdAt             DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   closedAt              DateTime?   @map("closed_at") @db.Timestamptz(6)
 

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { PasswordHasherPort } from '../../../shared/application/ports/password-hasher.port';
 import { CreateUserDto } from '../../dto/create-user.dto';
@@ -19,8 +20,11 @@ export class CreateUserUseCase {
       );
 
       return await this.usersRepository.create(createUserDto, hashedPassword);
-    } catch (error: any) {
-      if (error.code === 'P2002') {
+    } catch (error: unknown) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException('El email ya esta registrado');
       }
 

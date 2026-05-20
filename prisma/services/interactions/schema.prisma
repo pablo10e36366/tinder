@@ -14,18 +14,18 @@ enum InteractionType {
 }
 
 model InteractionUserCapability {
-  userId            String   @id @map("user_id") @db.Uuid
-  planCode          String   @map("plan_code") @db.VarChar(20)
-  superlikesPerDay  Int      @map("superlikes_per_day")
-  isActive          Boolean  @default(true) @map("is_active")
-  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  userId           Int      @id @map("user_id")
+  planCode         String   @map("plan_code") @db.VarChar(20)
+  superlikesPerDay Int?     @map("superlikes_per_day")
+  isActive         Boolean  @default(true) @map("is_active")
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("interaction_user_capabilities")
 }
 
 model InteractionDailyCounter {
-  id             String   @id @default(uuid()) @db.Uuid
-  userId         String   @map("user_id") @db.Uuid
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
   counterDate    DateTime @map("counter_date") @db.Date
   superlikesUsed Int      @default(0) @map("superlikes_used")
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -36,9 +36,9 @@ model InteractionDailyCounter {
 }
 
 model UserInteraction {
-  id           String          @id @default(uuid()) @db.Uuid
-  actorUserId  String          @map("actor_user_id") @db.Uuid
-  targetUserId String          @map("target_user_id") @db.Uuid
+  id           Int             @id @default(autoincrement())
+  actorUserId  Int             @map("actor_user_id")
+  targetUserId Int             @map("target_user_id")
   type         InteractionType
   createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)

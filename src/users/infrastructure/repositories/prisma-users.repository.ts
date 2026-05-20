@@ -1,3 +1,4 @@
+import type { SubscriptionPlan as PrismaSubscriptionPlan } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { publicUserSelect } from '../../../shared/infrastructure/prisma/public-user.select';
@@ -73,7 +74,7 @@ export class PrismaUsersRepository implements UsersRepository {
   async updatePlan(userId: number, plan: SubscriptionPlan): Promise<PublicUser> {
     const user = await this.prisma.user.update({
       where: { id: userId },
-      data: { plan } as any,
+      data: { plan: plan as PrismaSubscriptionPlan },
       select: publicUserSelect,
     });
 
