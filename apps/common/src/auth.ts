@@ -1,5 +1,7 @@
 import {
+  CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   SetMetadata,
   createParamDecorator,
@@ -13,15 +15,24 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 export interface JwtPayload {
   sub: number;
   email: string;
+  roles: AppRole[];
 }
 
 export interface AuthenticatedUser {
   id: number;
   email: string;
+  roles: AppRole[];
 }
 
 export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+export const ROLES_KEY = 'roles';
+
+export const APP_ROLES = ['USER', 'GOLD', 'PREMIUM', 'ADMIN'] as const;
+export type AppRole = (typeof APP_ROLES)[number];
+export const AUTHENTICATED_ROLES = [...APP_ROLES];
+
+export const Roles = (...roles: AppRole[]) => SetMetadata(ROLES_KEY, roles);
 
 export const CurrentUser = createParamDecorator(
   (_data: unknown, context: ExecutionContext): AuthenticatedUser => {
@@ -50,6 +61,7 @@ export class SharedJwtStrategy extends PassportStrategy(Strategy) {
     return {
       id: payload.sub,
       email: payload.email,
+      roles: payload.roles,
     };
   }
 }
@@ -74,6 +86,42 @@ export class SharedJwtAuthGuard extends AuthGuard('jwt') {
   }
 }
 
+@Injectable()
+export class SharedRolesGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return true;
+    }
+
+    const requiredRoles =
+      this.reflector.getAllAndOverride<AppRole[]>(ROLES_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]) ?? [];
+
+    if (requiredRoles.length === 0) {
+      return true;
+    }
+
+    const request = context.switchToHttp().getRequest<{ user?: AuthenticatedUser }>();
+    const userRoles = request.user?.roles ?? [];
+    const hasRequiredRole = requiredRoles.some((role) => userRoles.includes(role));
+
+    if (!hasRequiredRole) {
+      throw new ForbiddenException('No tienes permisos para acceder a este recurso');
+    }
+
+    return true;
+  }
+}
+
 export const sharedAuthImports = [
   PassportModule.register({ defaultStrategy: 'jwt' }),
 ];
@@ -83,5 +131,9 @@ export const sharedAuthProviders = [
   {
     provide: APP_GUARD,
     useClass: SharedJwtAuthGuard,
+  },
+  {
+    provide: APP_GUARD,
+    useClass: SharedRolesGuard,
   },
 ];

@@ -18,9 +18,11 @@ import {
   AccountStatus,
 } from '../../../prisma/services/users/generated/client';
 import {
+  AUTHENTICATED_ROLES,
   AuthenticatedUser,
   CurrentUser,
   Public,
+  Roles,
   sharedAuthImports,
   sharedAuthProviders,
 } from '../../common/src/auth';
@@ -306,16 +308,19 @@ class UsersServiceController {
   }
 
   @Get()
+  @Roles(...AUTHENTICATED_ROLES)
   findAll() {
     return this.usersAppService.findAll();
   }
 
   @Get('me')
+  @Roles(...AUTHENTICATED_ROLES)
   findMe(@CurrentUser() user: AuthenticatedUserType) {
     return this.usersAppService.findMe(user.id);
   }
 
   @Patch('me')
+  @Roles(...AUTHENTICATED_ROLES)
   updateMe(
     @CurrentUser() user: AuthenticatedUserType,
     @Body() updateUserProfileDto: UpdateUserProfileDto,

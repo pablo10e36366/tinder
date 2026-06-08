@@ -14,7 +14,9 @@ import {
   PrismaClient as MessagesPrismaClient,
 } from '../../../prisma/services/messages/generated/client';
 import {
+  AUTHENTICATED_ROLES,
   CurrentUser,
+  Roles,
   sharedAuthImports,
   sharedAuthProviders,
 } from '../../common/src/auth';
@@ -138,6 +140,7 @@ class MessagesServiceController {
   constructor(private readonly messagesAppService: MessagesAppService) {}
 
   @Post()
+  @Roles(...AUTHENTICATED_ROLES)
   create(
     @CurrentUser() user: AuthenticatedUserType,
     @Body() createMessageDto: CreateMessageDto,
@@ -146,6 +149,7 @@ class MessagesServiceController {
   }
 
   @Get(':matchId')
+  @Roles(...AUTHENTICATED_ROLES)
   findByMatch(
     @CurrentUser() user: AuthenticatedUserType,
     @Param('matchId', ParseIntPipe) matchId: number,

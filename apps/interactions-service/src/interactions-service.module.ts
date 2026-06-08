@@ -15,7 +15,9 @@ import {
   PrismaClient as InteractionsPrismaClient,
 } from '../../../prisma/services/interactions/generated/client';
 import {
+  AUTHENTICATED_ROLES,
   CurrentUser,
+  Roles,
   sharedAuthImports,
   sharedAuthProviders,
 } from '../../common/src/auth';
@@ -305,6 +307,7 @@ class InteractionsServiceController {
   constructor(private readonly interactionsAppService: InteractionsAppService) {}
 
   @Post()
+  @Roles(...AUTHENTICATED_ROLES)
   createOrUpdate(
     @CurrentUser() user: AuthenticatedUserType,
     @Body() createInteractionDto: CreateInteractionDto,
@@ -316,6 +319,7 @@ class InteractionsServiceController {
   }
 
   @Get('sent')
+  @Roles(...AUTHENTICATED_ROLES)
   findSent(@CurrentUser() user: AuthenticatedUserType) {
     return this.interactionsAppService.findSent(user.id);
   }

@@ -15,8 +15,10 @@ import {
   PrismaClient as MatchesPrismaClient,
 } from '../../../prisma/services/matches/generated/client';
 import {
+  AUTHENTICATED_ROLES,
   CurrentUser,
   Public,
+  Roles,
   sharedAuthImports,
   sharedAuthProviders,
 } from '../../common/src/auth';
@@ -157,6 +159,7 @@ class MatchesServiceController {
   constructor(private readonly matchesAppService: MatchesAppService) {}
 
   @Get('matches')
+  @Roles(...AUTHENTICATED_ROLES)
   findMine(@CurrentUser() user: AuthenticatedUserType) {
     return this.matchesAppService.findMine(user.id);
   }

@@ -17,8 +17,10 @@ import {
   SubscriptionStatus,
 } from '../../../prisma/services/subscriptions/generated/client';
 import {
+  AUTHENTICATED_ROLES,
   CurrentUser,
   Public,
+  Roles,
   sharedAuthImports,
   sharedAuthProviders,
 } from '../../common/src/auth';
@@ -167,11 +169,13 @@ class SubscriptionsServiceController {
   }
 
   @Get('subscriptions/me')
+  @Roles(...AUTHENTICATED_ROLES)
   findMine(@CurrentUser() user: AuthenticatedUserType) {
     return this.subscriptionsAppService.findMine(user.id);
   }
 
   @Patch('subscriptions/me')
+  @Roles(...AUTHENTICATED_ROLES)
   updateMine(
     @CurrentUser() user: AuthenticatedUserType,
     @Body() dto: UpdateSubscriptionPlanDto,
