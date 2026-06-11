@@ -1,98 +1,143 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Tinder Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend tipo Tinder construido con NestJS, TypeScript, Prisma y PostgreSQL.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Arquitectura
 
-## Description
+El proyecto esta organizado como un **monolito modular** con enfoque **hexagonal**.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+La ruta activa del sistema esta en `src/`.
 
-## Project setup
+Cada modulo sigue esta idea:
 
-```bash
-$ npm install
+- `domain`: entidades y contratos
+- `application`: casos de uso
+- `infrastructure`: implementaciones con Prisma o seguridad
+- `dto`: datos de entrada
+- `controller`: endpoints HTTP
+
+## Modulos
+
+- `auth`: login, JWT y RBAC
+- `users`: registro y perfil
+- `subscriptions`: planes y cambio de plan
+- `interactions`: likes, dislikes y superlikes
+- `matches`: creacion y consulta de matches
+- `messages`: chat entre usuarios con match
+- `prisma`: conexion unica a la base de datos
+- `shared`: seguridad y utilidades comunes
+
+## Base de datos
+
+Se usa una sola base PostgreSQL y un solo `schema.prisma`.
+
+Tablas principales:
+
+- `User`
+- `UserProfile`
+- `UserPhoto`
+- `UserInterest`
+- `Role`
+- `Permission`
+- `UserRole`
+- `RolePermission`
+- `SubscriptionPlan`
+- `UserSubscription`
+- `UserInteraction`
+- `Match`
+- `Message`
+
+## RBAC
+
+Roles implementados:
+
+- `USER`
+- `GOLD`
+- `PREMIUM`
+- `ADMIN`
+
+Regla aplicada:
+
+- `USER` es el rol base
+- `GOLD` y `PREMIUM` se sincronizan con la suscripcion
+- `ADMIN` se asigna manualmente
+
+## Variables de entorno
+
+Usa `.env` con estas variables base:
+
+```env
+DATABASE_URL="postgresql://postgres:123456@localhost:5432/database_tinder"
+JWT_SECRET="super-secret-change-this"
+PORT=3000
 ```
 
-## Compile and run the project
+Tambien tienes una referencia en `.env.example`.
+
+## Scripts
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
+npm run prisma:generate
+npm run prisma:validate
+npm run prisma:migrate
+npm run start:dev
 ```
 
-## Run tests
+## Endpoints principales
 
-```bash
-# unit tests
-$ npm run test
+### Publicos
 
-# e2e tests
-$ npm run test:e2e
+- `GET /`
+- `POST /users`
+- `POST /auth/login`
+- `GET /subscriptions/plans`
 
-# test coverage
-$ npm run test:cov
-```
+### Protegidos
 
-## Deployment
+- `GET /auth/profile`
+- `GET /auth/access/me`
+- `GET /users`
+- `GET /users/me`
+- `PATCH /users/me`
+- `GET /subscriptions/me`
+- `PATCH /subscriptions/me`
+- `POST /interactions`
+- `GET /interactions/sent`
+- `GET /matches`
+- `POST /messages`
+- `GET /messages/:matchId`
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Solo ADMIN
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- `GET /auth/access/users`
+- `PATCH /auth/access/users/:userId/roles`
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+## Pruebas en Postman
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Resumen rapido:
 
-## Resources
+1. Registrar dos usuarios con `POST /users`
+2. Hacer login con `POST /auth/login`
+3. Consultar `GET /subscriptions/me`
+4. Hacer like mutuo con `POST /interactions`
+5. Ver `GET /matches`
+6. Enviar mensaje con `POST /messages`
+7. Ver mensajes con `GET /messages/:matchId`
 
-Check out a few resources that may come in handy when working with NestJS:
+Guia mas detallada:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- [docs/postman-guide.md](docs/postman-guide.md)
 
-## Support
+## Estado del proyecto
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Actualmente el backend ya funciona con:
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- registro
+- login con JWT
+- bcrypt
+- RBAC
+- suscripciones
+- likes / dislikes / superlikes
+- match automatico
+- mensajes por match

@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AUTHENTICATED_ROLES, Roles } from '../auth/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../auth/interfaces/authenticated-user.interface';
 import { FindMatchMessagesUseCase } from './application/use-cases/find-match-messages.use-case';
 import { SendMessageUseCase } from './application/use-cases/send-message.use-case';
@@ -13,6 +14,7 @@ export class MessagesController {
   ) {}
 
   @Post()
+  @Roles(...AUTHENTICATED_ROLES)
   create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() createMessageDto: CreateMessageDto,
@@ -21,6 +23,7 @@ export class MessagesController {
   }
 
   @Get(':matchId')
+  @Roles(...AUTHENTICATED_ROLES)
   findByMatch(
     @CurrentUser() user: AuthenticatedUser,
     @Param('matchId', ParseIntPipe) matchId: number,

@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
+import { AUTHENTICATED_ROLES, Roles } from '../auth/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../auth/interfaces/authenticated-user.interface';
 import { FindMySubscriptionUseCase } from './application/use-cases/find-my-subscription.use-case';
 import { ListSubscriptionPlansUseCase } from './application/use-cases/list-subscription-plans.use-case';
@@ -22,11 +23,13 @@ export class SubscriptionsController {
   }
 
   @Get('me')
+  @Roles(...AUTHENTICATED_ROLES)
   findMine(@CurrentUser() user: AuthenticatedUser) {
     return this.findMySubscriptionUseCase.execute(user.id);
   }
 
   @Patch('me')
+  @Roles(...AUTHENTICATED_ROLES)
   updateMine(
     @CurrentUser() user: AuthenticatedUser,
     @Body() updateSubscriptionPlanDto: UpdateSubscriptionPlanDto,

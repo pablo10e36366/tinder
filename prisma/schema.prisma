@@ -12,28 +12,144 @@ enum InteractionType {
   SUPERLIKE
 }
 
-enum SubscriptionPlan {
+enum RoleCode {
+  USER
+  GOLD
+  PREMIUM
+  ADMIN
+}
+
+enum SubscriptionPlanCode {
   FREE
   GOLD
   PREMIUM
 }
 
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+}
+
+enum MatchStatus {
+  ACTIVE
+  CLOSED
+}
+
 model User {
-  id                   Int               @id @default(autoincrement())
-  name                 String
-  email                String            @unique
-  password             String
-  plan                 SubscriptionPlan  @default(FREE)
-  age                  Int?
-  bio                  String?
-  interests            String[]          @default([])
-  location             String?
-  photos               String[]          @default([])
-  sentInteractions     UserInteraction[] @relation("SentInteractions")
-  receivedInteractions UserInteraction[] @relation("ReceivedInteractions")
-  firstUserMatches     Match[]           @relation("FirstMatchedUser")
-  secondUserMatches    Match[]           @relation("SecondMatchedUser")
-  sentMessages         Message[]         @relation("SentMessages")
+  id                   Int                @id @default(autoincrement())
+  email                String             @unique
+  passwordHash         String
+  isActive             Boolean            @default(true)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  profile              UserProfile?
+  photos               UserPhoto[]
+  interests            UserInterest[]
+  userRoles            UserRole[]
+  subscriptions        UserSubscription[]
+  sentInteractions     UserInteraction[]  @relation("SentInteractions")
+  receivedInteractions UserInteraction[]  @relation("ReceivedInteractions")
+  firstUserMatches     Match[]            @relation("FirstMatchedUser")
+  secondUserMatches    Match[]            @relation("SecondMatchedUser")
+  sentMessages         Message[]          @relation("SentMessages")
+}
+
+model UserProfile {
+  userId      Int      @id
+  displayName String
+  age         Int?
+  bio         String?
+  location    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserPhoto {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  url       String
+  sortOrder Int      @default(0)
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sortOrder])
+}
+
+model UserInterest {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  interest  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, interest])
+}
+
+model Role {
+  id              Int              @id @default(autoincrement())
+  code            RoleCode         @unique
+  name            String
+  description     String?
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+}
+
+model Permission {
+  id              Int              @id @default(autoincrement())
+  code            String           @unique
+  name            String
+  description     String?
+  rolePermissions RolePermission[]
+}
+
+model UserRole {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  roleId     Int
+  assignedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model SubscriptionPlan {
+  id                Int                  @id @default(autoincrement())
+  code              SubscriptionPlanCode @unique
+  name              String
+  description       String?
+  superLikesPerDay  Int?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  userSubscriptions UserSubscription[]
+}
+
+model UserSubscription {
+  id         Int                @id @default(autoincrement())
+  userId     Int
+  planId     Int
+  status     SubscriptionStatus @default(ACTIVE)
+  startedAt  DateTime           @default(now())
+  expiresAt  DateTime?
+  canceledAt DateTime?
+  createdAt  DateTime           @default(now())
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan       SubscriptionPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([userId, status, startedAt])
 }
 
 model UserInteraction {
@@ -52,13 +168,15 @@ model UserInteraction {
 }
 
 model Match {
-  id           Int      @id @default(autoincrement())
-  user1Id      Int
-  user2Id      Int
-  createdAt    DateTime @default(now())
-  firstUser    User     @relation("FirstMatchedUser", fields: [user1Id], references: [id], onDelete: Cascade)
-  secondUser   User     @relation("SecondMatchedUser", fields: [user2Id], references: [id], onDelete: Cascade)
-  messages     Message[]
+  id         Int         @id @default(autoincrement())
+  user1Id    Int
+  user2Id    Int
+  status     MatchStatus @default(ACTIVE)
+  createdAt  DateTime    @default(now())
+  closedAt   DateTime?
+  firstUser  User        @relation("FirstMatchedUser", fields: [user1Id], references: [id], onDelete: Cascade)
+  secondUser User        @relation("SecondMatchedUser", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages   Message[]
 
   @@unique([user1Id, user2Id])
   @@index([user1Id])
@@ -71,8 +189,8 @@ model Message {
   senderId  Int
   content   String
   createdAt DateTime @default(now())
-  match     Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  sender    User      @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([matchId, createdAt])
   @@index([senderId])

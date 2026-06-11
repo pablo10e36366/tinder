@@ -6,9 +6,13 @@ import { SecurityModule } from '../shared/infrastructure/security/security.modul
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
 import { JwtStrategy } from './jwt.strategy';
 import { TokenSignerPort } from './domain/ports/token-signer.port';
+import { FindAllUserAccessUseCase } from './application/use-cases/find-all-user-access.use-case';
+import { FindMyAccessUseCase } from './application/use-cases/find-my-access.use-case';
 import { LoginUseCase } from './application/use-cases/login.use-case';
+import { UpdateUserRolesUseCase } from './application/use-cases/update-user-roles.use-case';
 import { ValidateJwtUserUseCase } from './application/use-cases/validate-jwt-user.use-case';
 import { JwtTokenSignerAdapter } from './infrastructure/adapters/jwt-token-signer.adapter';
 
@@ -37,6 +41,9 @@ import { JwtTokenSignerAdapter } from './infrastructure/adapters/jwt-token-signe
   controllers: [AuthController],
   providers: [
     LoginUseCase,
+    FindMyAccessUseCase,
+    FindAllUserAccessUseCase,
+    UpdateUserRolesUseCase,
     ValidateJwtUserUseCase,
     JwtStrategy,
     JwtTokenSignerAdapter,
@@ -47,6 +54,10 @@ import { JwtTokenSignerAdapter } from './infrastructure/adapters/jwt-token-signe
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

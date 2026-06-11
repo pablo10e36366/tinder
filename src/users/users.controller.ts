@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
+import { AUTHENTICATED_ROLES, Roles } from '../auth/decorators/roles.decorator';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import type { AuthenticatedUser } from '../auth/interfaces/authenticated-user.interface';
@@ -25,16 +26,19 @@ export class UsersController {
   }
 
   @Get()
+  @Roles('ADMIN')
   findAll() {
     return this.findAllUsersUseCase.execute();
   }
 
   @Get('me')
+  @Roles(...AUTHENTICATED_ROLES)
   getMe(@CurrentUser() user: AuthenticatedUser) {
     return this.findPublicUserByIdUseCase.execute(user.id);
   }
 
   @Patch('me')
+  @Roles(...AUTHENTICATED_ROLES)
   updateMe(
     @CurrentUser() user: AuthenticatedUser,
     @Body() updateUserProfileDto: UpdateUserProfileDto,

@@ -24,7 +24,7 @@ export class LoginUseCase {
 
     const isPasswordValid = await this.passwordHasher.compare(
       loginDto.password,
-      user.password,
+      user.passwordHash,
     );
 
     if (!isPasswordValid) {
@@ -34,6 +34,7 @@ export class LoginUseCase {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
+      roles: user.roles,
     };
 
     const accessToken = await this.tokenSigner.sign(payload);
@@ -44,6 +45,7 @@ export class LoginUseCase {
         id: user.id,
         name: user.name,
         email: user.email,
+        roles: user.roles,
       },
     };
   }
