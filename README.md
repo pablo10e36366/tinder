@@ -4,9 +4,12 @@ Backend tipo Tinder construido con NestJS, TypeScript, Prisma y PostgreSQL.
 
 ## Arquitectura
 
-El proyecto esta organizado como un **monolito modular** con enfoque **hexagonal**.
+Actualmente el repo tiene dos partes:
 
-La ruta activa del sistema esta en `src/`.
+- `src/`: monolito modular original
+- `apps/`: migracion activa a microservicios con Nest
+
+La nueva separacion de microservicios ya esta concentrada en `apps/`.
 
 Cada modulo sigue esta idea:
 
@@ -16,7 +19,7 @@ Cada modulo sigue esta idea:
 - `dto`: datos de entrada
 - `controller`: endpoints HTTP
 
-## Modulos
+## Servicios / modulos
 
 - `auth`: login, JWT y RBAC
 - `users`: registro y perfil
@@ -24,12 +27,22 @@ Cada modulo sigue esta idea:
 - `interactions`: likes, dislikes y superlikes
 - `matches`: creacion y consulta de matches
 - `messages`: chat entre usuarios con match
-- `prisma`: conexion unica a la base de datos
-- `shared`: seguridad y utilidades comunes
+- `libs/common`: contratos, DTOs compartidos y patrones de mensajes
 
 ## Base de datos
 
-Se usa una sola base PostgreSQL y un solo `schema.prisma`.
+Hoy el proyecto puede seguir funcionando con una sola `DATABASE_URL`, pero ya
+quedo preparado para usar URLs por microservicio:
+
+- `AUTH_DATABASE_URL`
+- `USERS_DATABASE_URL`
+- `SUBSCRIPTIONS_DATABASE_URL`
+- `INTERACTIONS_DATABASE_URL`
+- `MATCHES_DATABASE_URL`
+- `MESSAGES_DATABASE_URL`
+
+Por ahora el cliente Prisma sigue usando el mismo esquema general de Prisma,
+pero cada microservicio que toca datos ya tiene su propio `PrismaService`.
 
 Tablas principales:
 
@@ -70,6 +83,19 @@ Usa `.env` con estas variables base:
 DATABASE_URL="postgresql://postgres:123456@localhost:5432/database_tinder"
 JWT_SECRET="super-secret-change-this"
 PORT=3000
+API_GATEWAY_PORT=3000
+AUTH_DATABASE_URL="postgresql://postgres:123456@localhost:5432/database_tinder"
+USERS_DATABASE_URL="postgresql://postgres:123456@localhost:5432/database_tinder"
+SUBSCRIPTIONS_DATABASE_URL="postgresql://postgres:123456@localhost:5432/database_tinder"
+INTERACTIONS_DATABASE_URL="postgresql://postgres:123456@localhost:5432/database_tinder"
+MATCHES_DATABASE_URL="postgresql://postgres:123456@localhost:5432/database_tinder"
+MESSAGES_DATABASE_URL="postgresql://postgres:123456@localhost:5432/database_tinder"
+AUTH_SERVICE_PORT=3001
+USERS_SERVICE_PORT=3002
+SUBSCRIPTIONS_SERVICE_PORT=3003
+INTERACTIONS_SERVICE_PORT=3004
+MATCHES_SERVICE_PORT=3005
+MESSAGES_SERVICE_PORT=3006
 ```
 
 Tambien tienes una referencia en `.env.example`.
@@ -82,7 +108,38 @@ npm run prisma:generate
 npm run prisma:validate
 npm run prisma:migrate
 npm run start:dev
+npm run start:gateway:dev
+npm run start:users-service:dev
 ```
+
+## Workspace de microservicios
+
+La base inicial para Nest Microservices ya existe en:
+
+- `apps/api-gateway`
+- `apps/auth-service`
+- `apps/users-service`
+- `apps/subscriptions-service`
+- `apps/interactions-service`
+- `apps/matches-service`
+- `apps/messages-service`
+- `libs/common`
+
+En este punto:
+
+- `api-gateway` levanta como app HTTP
+- `auth-service` levanta como microservicio TCP
+- `users-service` levanta como microservicio TCP
+- `subscriptions-service` levanta como microservicio TCP
+- `interactions-service` levanta como microservicio TCP
+- `matches-service` levanta como microservicio TCP
+- `messages-service` levanta como microservicio TCP
+
+Ademas:
+
+- cada servicio ya tiene su `main.ts`
+- la comunicacion interna ya usa `ClientProxy` y `@MessagePattern()`
+- `users`, `interactions`, `matches` y `messages` ya tienen su `PrismaService` local
 
 ## Endpoints principales
 

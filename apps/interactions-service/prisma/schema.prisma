@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum InteractionType {
+  LIKE
+  DISLIKE
+  SUPERLIKE
+}
+
+model UserInteraction {
+  id         Int             @id @default(autoincrement())
+  fromUserId Int
+  toUserId   Int
+  type       InteractionType
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@unique([fromUserId, toUserId])
+  @@index([fromUserId, type])
+  @@index([toUserId, type])
+}

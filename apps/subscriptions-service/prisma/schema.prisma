@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SubscriptionPlanCode {
+  FREE
+  GOLD
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+}
+
+model SubscriptionPlan {
+  id                Int                  @id @default(autoincrement())
+  code              SubscriptionPlanCode @unique
+  name              String
+  description       String?
+  superLikesPerDay  Int?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  userSubscriptions UserSubscription[]
+}
+
+model UserSubscription {
+  id         Int                @id @default(autoincrement())
+  userId     Int
+  planId     Int
+  status     SubscriptionStatus @default(ACTIVE)
+  startedAt  DateTime           @default(now())
+  expiresAt  DateTime?
+  canceledAt DateTime?
+  createdAt  DateTime           @default(now())
+  plan       SubscriptionPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([userId, status, startedAt])
+}
