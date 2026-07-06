@@ -1,0 +1,30 @@
+{
+  "name": "@tinder/users-service",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@app/common": "file:../../libs/common",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@prisma/client": "^7.6.0",
+    "dotenv": "^17.4.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "prisma": "^7.6.0",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "start": "set DOTENV_CONFIG_PATH=../../.env&& ts-node -r dotenv/config -P tsconfig.app.json -r tsconfig-paths/register src/main.ts",
+    "start:dev": "set DOTENV_CONFIG_PATH=../../.env&& ts-node -r dotenv/config -P tsconfig.app.json -r tsconfig-paths/register src/main.ts",
+    "build": "nest build -p tsconfig.app.json",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "prisma:validate": "prisma validate --config prisma/prisma.config.ts",
+    "prisma:generate": "prisma generate --config prisma/prisma.config.ts",
+    "prisma:migrate": "prisma migrate dev --config prisma/prisma.config.ts"
+  }
+}

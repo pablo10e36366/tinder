@@ -4,6 +4,10 @@
   "description": "",
   "author": "",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
   "license": "UNLICENSED",
   "scripts": {
     "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && nest build monolith",
